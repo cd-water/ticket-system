@@ -1,0 +1,25 @@
+server:
+  port: 8600
+
+spring:
+  application:
+    name: ticket-system
+  datasource:
+    url: jdbc:mysql://localhost:3306/${MYSQL_DATABASE:ticket_system}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: ${MYSQL_ROOT_PASSWORD:ticketmysql}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:ticketredis}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_DEFAULT_USER:ticketrabbitmq}
+    password: ${RABBITMQ_DEFAULT_PASS:ticketrabbitmq}
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
