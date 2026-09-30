@@ -5,14 +5,24 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
-@TableName("t_user")
-public class User {
+@TableName("t_event")
+public class Event {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String phone;
+    private String name;
 
-    private String password;
+    private String address;
+
+    private BigDecimal price;
+
+    private Integer mode;
+
+    private Integer rowCount;
+
+    private Integer colCount;
 }
