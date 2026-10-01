@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>认证鉴权时序图</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5; --color-ink: #2d3142; --color-muted: #4f5d75;
+      --color-soft: #7a8399; --color-accent: #eb6c36;
+      --font-sans: 'Geist','Noto Sans SC',system-ui,sans-serif;
+      --font-serif: 'Instrument Serif','Noto Serif SC',serif;
+      --font-mono: 'Geist Mono',ui-monospace,monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink);
+           min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: .66rem; font-weight: 500; letter-spacing: .18em;
+               text-transform: uppercase; color: var(--color-muted); margin-bottom: .5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + .75rem, 2rem); font-weight: 400;
+         letter-spacing: -.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">SEQUENCE · AUTH · TICKET SYSTEM</p>
+    <h1>认证鉴权时序图（JWT 双 Token）</h1>
+
+    <svg viewBox="0 0 1120 836" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="seq-auth-title seq-auth-desc">
+      <title id="seq-auth-title">认证鉴权时序图</title>
+      <desc id="seq-auth-desc">JWT 双 Token 认证时序图：两种登录入口（验证码比对可静默注册、密码哈希校验）共同完成查用户与签发双 Token，Access 为 JWT 由过滤器本地验签鉴权、全程不查 Redis，过期后过滤器返回 401 由前端拦截转刷新接口，携带 Refresh 命中 Redis 则轮换签发新双 Token 无感重放，未命中需重新登录，登出仅删 Refresh、Access 自然过期。</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      </defs>
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- 生命线 -->
+      <g stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3">
+        <line x1="120" y1="96" x2="120" y2="752"/>
+        <line x1="440" y1="96" x2="440" y2="752"/>
+        <line x1="760" y1="96" x2="760" y2="752"/>
+        <line x1="1000" y1="96" x2="1000" y2="752"/>
+      </g>
+
+      <!-- 激活条 -->
+      <rect x="436" y="152" width="8" height="176" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="436" y="364" width="8" height="48" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="436" y="444" width="8" height="32" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="436" y="504" width="8" height="224" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="996" y="236" width="8" height="32" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="756" y="276" width="8" height="32" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="756" y="600" width="8" height="32" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+
+      <!-- 登录：两种入口 -->
+      <line x1="128" y1="160" x2="436" y2="160" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="178" y="138" width="208" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="148" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">POST /api/auth/sms-login · 手机号+验证码</text>
+      <line x1="128" y1="196" x2="436" y2="196" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="184" y="174" width="196" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="184" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">POST /api/auth/pwd-login · 手机号+密码</text>
+      <line x1="448" y1="240" x2="996" y2="240" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="674" y="218" width="96" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="722" y="228" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">查用户 · 校验</text>
+      <line x1="448" y1="280" x2="756" y2="280" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="530" y="258" width="144" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="602" y="268" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.06em">SET refresh:{uuid} · EX 7d</text>
+      <line x1="436" y1="316" x2="128" y2="316" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <rect x="192" y="294" width="180" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="304" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.06em">Access(JWT 30min)+Refresh(7d)</text>
+
+      <!-- 访问：无状态鉴权 -->
+      <line x1="128" y1="372" x2="436" y2="372" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="210" y="350" width="144" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="360" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.06em">GET /api/… · Bearer Access</text>
+      <path d="M 448 400 h 28 v 16 h -20" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="488" y="414" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" letter-spacing="0.06em">本地验签 · userId 入上下文（零查询）</text>
+
+      <!-- Access 过期 -->
+      <line x1="128" y1="452" x2="436" y2="452" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="210" y="430" width="144" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="440" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">GET /api/… · Access 已过期</text>
+      <text x="470" y="484" fill="#4f5d75" font-size="11" font-style="italic" font-family="'Instrument Serif','Noto Serif SC',serif">过滤器 401 · 前端拦截转刷新</text>
+
+      <!-- 刷新 -->
+      <line x1="128" y1="512" x2="436" y2="512" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="194" y="490" width="176" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="500" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.06em">POST /api/auth/refresh · Refresh</text>
+
+      <!-- ALT：刷新判定 -->
+      <rect x="416" y="544" width="368" height="188" rx="4" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <rect x="416" y="544" width="40" height="16" rx="2" fill="#f5f5f5" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="436" y="556" fill="#4f5d75" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.12em">ALT</text>
+      <text x="428" y="576" fill="#4f5d75" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" letter-spacing="0.04em">[Redis 命中]</text>
+      <line x1="448" y1="604" x2="756" y2="604" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="542" y="582" width="120" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="602" y="592" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">轮换 · DEL 旧 SET 新</text>
+      <line x1="436" y1="640" x2="128" y2="640" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="220" y="618" width="124" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="628" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">新双 Token · 无感重放</text>
+      <line x1="424" y1="664" x2="776" y2="664" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="428" y="686" fill="#4f5d75" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" letter-spacing="0.04em">[else 未命中]</text>
+      <line x1="436" y1="712" x2="128" y2="712" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <rect x="238" y="690" width="88" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="700" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">401 · 重新登录</text>
+
+      <!-- 侧注：登出 -->
+      <text x="136" y="764" fill="#4f5d75" font-size="11" font-style="italic" font-family="'Instrument Serif','Noto Serif SC',serif">登出 = DEL refresh · Access 不撤销，≤30min 自然过期</text>
+
+      <!-- 参与者 -->
+      <g font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">
+        <rect x="44" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="44" y="48" width="152" height="48" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <text x="120" y="70" fill="#2d3142">用户</text><text x="120" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">:5600 前端</text>
+        <rect x="364" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="364" y="48" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="440" y="70" fill="#2d3142">ticket-auth</text><text x="440" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">认证服务 :8600</text>
+        <rect x="684" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="684" y="48" width="152" height="48" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="760" y="70" fill="#2d3142">Redis</text><text x="760" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">:6379</text>
+        <rect x="924" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="924" y="48" width="152" height="48" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="1000" y="70" fill="#2d3142">MySQL</text><text x="1000" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">:3306 · t_user</text>
+      </g>
+
+      <!-- 图例 -->
+      <line x1="48" y1="792" x2="1072" y2="792" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="48" y="816" fill="#4f5d75" font-size="8" font-family="'Geist Mono',monospace" letter-spacing="0.14em">LEGEND</text>
+      <g font-size="9" fill="#4f5d75" font-family="'Geist Mono','Noto Sans SC',monospace">
+        <text x="120" y="816">实线 = 同步调用</text>
+        <text x="260" y="816">虚线实心 = 返回</text>
+        <text x="410" y="816">橙色 = 关键成功路径</text>
+      </g>
+    </svg>
+  </div>
+</body>
+</html>

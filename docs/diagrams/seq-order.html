@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>下单时序图</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5; --color-ink: #2d3142; --color-muted: #4f5d75;
+      --color-soft: #7a8399; --color-accent: #eb6c36;
+      --font-sans: 'Geist','Noto Sans SC',system-ui,sans-serif;
+      --font-serif: 'Instrument Serif','Noto Serif SC',serif;
+      --font-mono: 'Geist Mono',ui-monospace,monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink);
+           min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: .66rem; font-weight: 500; letter-spacing: .18em;
+               text-transform: uppercase; color: var(--color-muted); margin-bottom: .5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + .75rem, 2rem); font-weight: 400;
+         letter-spacing: -.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">SEQUENCE · ORDER · TICKET SYSTEM</p>
+    <h1>下单时序图（抢票 / 选座）</h1>
+
+    <svg viewBox="0 0 1120 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="seq-order-title seq-order-desc">
+      <title id="seq-order-title">下单时序图</title>
+      <desc id="seq-order-desc">下单时序图，抢票与选座双模式：抢票模式 Redis Lua 单脚本原子完成一人一单资格键与库存预扣减，选座模式 Lua 原子完成 SETNX 抢占 900 秒座位租约与座位图置位，租约到期自动释放；成功后订单与超时关单发件箱消息同事务落库并返回订单号与支付倒计时，失败（售罄或座位被抢）即刻返回。</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      </defs>
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- 生命线 -->
+      <g stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3">
+        <line x1="120" y1="96" x2="120" y2="668"/>
+        <line x1="440" y1="96" x2="440" y2="668"/>
+        <line x1="760" y1="96" x2="760" y2="668"/>
+        <line x1="1000" y1="96" x2="1000" y2="668"/>
+      </g>
+
+      <!-- 激活条 -->
+      <rect x="436" y="152" width="8" height="484" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="756" y="260" width="8" height="52" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="756" y="388" width="8" height="52" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="996" y="540" width="8" height="52" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+
+      <!-- 消息 -->
+      <line x1="128" y1="160" x2="436" y2="160" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="190" y="138" width="184" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="282" y="148" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">POST /api/order · eventId(+seatId)</text>
+
+      <!-- ALT：双模式分流 -->
+      <rect x="416" y="200" width="368" height="256" rx="4" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <rect x="416" y="200" width="40" height="16" rx="2" fill="#f5f5f5" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="436" y="212" fill="#4f5d75" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.12em">ALT</text>
+      <text x="428" y="236" fill="#4f5d75" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" letter-spacing="0.04em">[mode=抢票]</text>
+      <line x1="448" y1="264" x2="756" y2="264" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="522" y="242" width="160" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="602" y="252" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">Lua · 资格键 + DECR 库存</text>
+      <line x1="756" y1="304" x2="448" y2="304" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <rect x="558" y="282" width="88" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="602" y="292" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">OK / 0=售罄</text>
+      <line x1="424" y1="336" x2="776" y2="336" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="428" y="360" fill="#4f5d75" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" letter-spacing="0.04em">[else mode=选座]</text>
+      <line x1="448" y1="392" x2="756" y2="392" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="522" y="370" width="160" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="602" y="380" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">Lua · SETNX EX 900 · SETBIT 1</text>
+      <line x1="756" y1="432" x2="448" y2="432" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <rect x="546" y="410" width="112" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="602" y="420" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">OK / nil=已被抢</text>
+
+      <!-- 自消息：生成订单号 -->
+      <path d="M 448 492 h 28 v 16 h -20" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="488" y="506" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" letter-spacing="0.06em">生成 orderNo（雪花）</text>
+
+      <!-- 同事务落库 -->
+      <line x1="448" y1="544" x2="996" y2="544" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="642" y="522" width="160" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="722" y="532" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">同事务：订单 + 发件箱消息</text>
+      <line x1="996" y1="584" x2="448" y2="584" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <rect x="694" y="562" width="56" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="722" y="572" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.06em">COMMIT</text>
+
+      <!-- 返回订单号（关键成功） -->
+      <line x1="436" y1="632" x2="128" y2="632" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="216" y="610" width="164" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="298" y="620" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">orderNo · 15min 倒计时</text>
+
+      <!-- 参与者（最后画，压住生命线顶端） -->
+      <g font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">
+        <rect x="44" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="44" y="48" width="152" height="48" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <text x="120" y="70" fill="#2d3142">用户</text><text x="120" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">:5600 前端</text>
+        <rect x="364" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="364" y="48" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="440" y="70" fill="#2d3142">ticket-booking</text><text x="440" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">下单服务 :8600</text>
+        <rect x="684" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="684" y="48" width="152" height="48" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="760" y="70" fill="#2d3142">Redis</text><text x="760" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">:6379</text>
+        <rect x="924" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="924" y="48" width="152" height="48" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="1000" y="70" fill="#2d3142">MySQL</text><text x="1000" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">:3306</text>
+      </g>
+
+      <!-- 图例 -->
+      <line x1="48" y1="700" x2="1072" y2="700" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="48" y="724" fill="#4f5d75" font-size="8" font-family="'Geist Mono',monospace" letter-spacing="0.14em">LEGEND</text>
+      <g font-size="9" fill="#4f5d75" font-family="'Geist Mono','Noto Sans SC',monospace">
+        <text x="120" y="724">实线 = 同步调用</text>
+        <text x="260" y="724">虚线实心 = 返回</text>
+        <text x="410" y="724">橙色 = 关键成功路径</text>
+      </g>
+    </svg>
+  </div>
+</body>
+</html>

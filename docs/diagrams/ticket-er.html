@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>票务系统数据库 ER 图</title>
+  <title>数据库 ER 图</title>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,11 +57,11 @@
 <body>
   <div class="frame">
     <p class="eyebrow">ER DATA MODEL · TICKET SYSTEM</p>
-    <h1>票务系统数据库 ER 图</h1>
+    <h1>数据库 ER 图</h1>
 
-    <svg viewBox="0 0 1120 648" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ticket-er-title ticket-er-desc">
-      <title id="ticket-er-title">票务系统数据库 ER 图</title>
-      <desc id="ticket-er-desc">票务系统六张表的实体关系图：活动派生出库存与座位，用户、活动、座位三方汇聚为订单，订单对应一张微信支付单。</desc>
+    <svg viewBox="0 0 1120 784" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ticket-er-title ticket-er-desc">
+      <title id="ticket-er-title">数据库 ER 图</title>
+      <desc id="ticket-er-desc">高并发票务系统七张表的实体关系图：活动派生出库存与座位，用户、活动、座位三方汇聚为订单，订单对应一张微信支付单，订单事实经消息发件箱表可靠投递。</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
         <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
@@ -83,10 +83,12 @@
       <path d="M 832 194 V 248 Q 832 256 824 256 H 608 Q 600 256 600 264 V 320" stroke="#4f5d75" stroke-width="1" fill="none"/>
       <!-- 订单 1:1 支付单 -->
       <path d="M 648 406 H 744" stroke="#4f5d75" stroke-width="1" fill="none"/>
+      <!-- 订单 1:N 发件箱（payload.orderNo 逻辑引用，无外键，虚线） -->
+      <path d="M 560 492 V 560" stroke="#4f5d75" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
 
       <!-- ============ 基数标注（离线 8px 以上） ============ -->
       <g font-family="'Geist Mono', monospace" font-size="8" fill="#7a8399" letter-spacing="0.06em">
-        <text x="384" y="126">1</text>
+        <text x="384" y="126">0..1</text>
         <text x="462" y="126" text-anchor="end">1</text>
         <text x="656" y="126">1</text>
         <text x="734" y="126" text-anchor="end">N</text>
@@ -94,10 +96,12 @@
         <text x="568" y="312">N</text>
         <text x="384" y="396">1</text>
         <text x="462" y="396" text-anchor="end">N</text>
-        <text x="840" y="208">1</text>
-        <text x="608" y="312">0..1</text>
+        <text x="840" y="208">0..1</text>
+        <text x="608" y="312">N</text>
         <text x="656" y="396">1</text>
-        <text x="734" y="396" text-anchor="end">1</text>
+        <text x="734" y="396" text-anchor="end">0..1</text>
+        <text x="568" y="502">1</text>
+        <text x="568" y="552">N</text>
       </g>
 
       <!-- ============ 实体：用户 ============ -->
@@ -111,7 +115,7 @@
       <g font-family="'Geist Mono', monospace" font-size="9">
         <text x="212" y="408" fill="#2d3142"># id BIGINT</text>
         <text x="212" y="422" fill="#4f5d75">phone VARCHAR</text>
-        <text x="212" y="436" fill="#4f5d75">password VARCHAR</text>
+        <text x="212" y="436" fill="#4f5d75">password VARCHAR ?</text>
       </g>
 
       <!-- ============ 实体：活动（枢纽） ============ -->
@@ -179,7 +183,7 @@
         <text x="484" y="434" fill="#4f5d75">amount DECIMAL</text>
         <text x="484" y="448" fill="#4f5d75">status TINYINT</text>
         <text x="484" y="462" fill="#4f5d75">expire_time DATETIME</text>
-        <text x="484" y="476" fill="#4f5d75">pay_time DATETIME</text>
+        <text x="484" y="476" fill="#4f5d75">pay_time DATETIME ?</text>
       </g>
 
       <!-- ============ 实体：支付单 ============ -->
@@ -199,26 +203,38 @@
         <text x="756" y="478" fill="#4f5d75">code_url VARCHAR ?</text>
         <text x="756" y="492" fill="#4f5d75">transaction_id VARCHAR ?</text>
         <text x="756" y="506" fill="#4f5d75">expire_time DATETIME</text>
-        <text x="756" y="520" fill="#4f5d75">pay_time DATETIME</text>
+        <text x="756" y="520" fill="#4f5d75">pay_time DATETIME ?</text>
       </g>
 
-      <!-- ============ 编辑批注 ============ -->
-      <g font-family="'Noto Serif SC', serif" font-style="italic" font-size="14" fill="#2d3142">
-        <text x="96" y="520">seat_id 为空是抢票，有值是选座 ——</text>
-        <text x="96" y="544">一张订单表装下两种购票模式。</text>
+      <!-- ============ 实体：发件箱 ============ -->
+      <rect x="472" y="560" width="176" height="128" rx="6" fill="#f5f5f5"/>
+      <rect x="472" y="560" width="176" height="128" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="482" y="568" width="34" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="499" y="577" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+      <text x="524" y="578" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans SC', sans-serif">t_outbox</text>
+      <text x="638" y="577" fill="#7a8399" font-size="9" font-family="'Noto Sans SC', sans-serif" text-anchor="end">发件箱表</text>
+      <line x1="482" y1="588" x2="638" y2="588" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <g font-family="'Geist Mono', monospace" font-size="9">
+        <text x="484" y="604" fill="#2d3142"># id BIGINT</text>
+        <text x="484" y="618" fill="#4f5d75">exchange VARCHAR</text>
+        <text x="484" y="632" fill="#4f5d75">routing_key VARCHAR</text>
+        <text x="484" y="646" fill="#4f5d75">payload VARCHAR</text>
+        <text x="484" y="660" fill="#4f5d75">deliver_time DATETIME</text>
+        <text x="484" y="674" fill="#4f5d75">status TINYINT</text>
       </g>
 
       <!-- ============ 图例（底部横条） ============ -->
-      <line x1="48" y1="600" x2="1072" y2="600" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
-      <text x="48" y="624" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
-      <g font-family="'Geist Mono', monospace" font-size="9" fill="#4f5d75">
-        <text x="120" y="624"># 主键</text>
-        <text x="200" y="624">→ 外键</text>
-        <text x="280" y="624">? 可空</text>
-        <text x="360" y="624">线端 1 / N / 0..1 为基数</text>
+      <line x1="48" y1="728" x2="1072" y2="728" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="48" y="752" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+      <g font-family="'Geist Mono', 'Noto Sans SC', monospace" font-size="9" fill="#4f5d75">
+        <text x="120" y="752"># 主键</text>
+        <text x="200" y="752">→ 外键</text>
+        <text x="280" y="752">? 可空</text>
+        <text x="360" y="752">线端 1 / N / 0..1 为基数</text>
+        <text x="700" y="752">虚线 = 引用内嵌于 payload（无外键列）</text>
       </g>
-      <rect x="536" y="616" width="8" height="8" rx="2" fill="rgba(235,108,54,0.30)" stroke="#eb6c36" stroke-width="1"/>
-      <text x="552" y="624" fill="#4f5d75" font-size="9" font-family="'Noto Sans SC', sans-serif">核心表（聚合根）</text>
+      <rect x="920" y="744" width="8" height="8" rx="2" fill="rgba(235,108,54,0.30)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="936" y="752" fill="#4f5d75" font-size="9" font-family="'Noto Sans SC', sans-serif">核心表</text>
     </svg>
   </div>
 </body>

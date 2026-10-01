@@ -90,3 +90,18 @@ CREATE TABLE `t_payment`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT = '支付单表';
+
+-- 7. 消息发件箱表（Outbox 模式）
+CREATE TABLE `t_outbox`
+(
+    `id`           BIGINT        NOT NULL AUTO_INCREMENT COMMENT '消息ID（主键）',
+    `exchange`     VARCHAR(64)   NOT NULL COMMENT '目标交换机',
+    `routing_key`  VARCHAR(64)   NOT NULL COMMENT '路由键',
+    `payload`      VARCHAR(1024) NOT NULL COMMENT '消息体（JSON）',
+    `deliver_time` DATETIME      NOT NULL COMMENT '期望投递时间',
+    `status`       TINYINT       NOT NULL DEFAULT 0 COMMENT '状态（0-待投递 1-已投递）',
+    PRIMARY KEY (`id`),
+    KEY `idx_status_deliver` (`status`, `deliver_time`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci COMMENT = '消息发件箱表';
