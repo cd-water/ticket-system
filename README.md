@@ -26,7 +26,7 @@
 ```
 ├── ticket-common/    # 公共基础：Result 响应封装、异常、实体；统一声明技术栈依赖
 ├── ticket-auth/      # 认证模块
-├── ticket-event/     # 演出/赛事模块
+├── ticket-event/     # 活动模块
 ├── ticket-booking/   # 购票/订单模块（依赖 auth、event）
 ├── ticket-boot/      # 启动模块：唯一可运行入口，端口 8600
 ├── frontend/         # Vue 3 前端，端口 5600，/api 代理到后端 8600

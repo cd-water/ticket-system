@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>状态机图</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5; --color-ink: #2d3142; --color-muted: #4f5d75;
+      --color-soft: #7a8399; --color-accent: #eb6c36;
+      --font-sans: 'Geist','Noto Sans SC',system-ui,sans-serif;
+      --font-serif: 'Instrument Serif','Noto Serif SC',serif;
+      --font-mono: 'Geist Mono',ui-monospace,monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink);
+           min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: .66rem; font-weight: 500; letter-spacing: .18em;
+               text-transform: uppercase; color: var(--color-muted); margin-bottom: .5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + .75rem, 2rem); font-weight: 400;
+         letter-spacing: -.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">STATE MACHINE · TICKET SYSTEM</p>
+    <h1>状态机图（订单 / 支付单 / 发件箱）</h1>
+
+    <svg viewBox="0 0 1120 740" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ticket-state-title ticket-state-desc">
+      <title id="ticket-state-title">状态机图</title>
+      <desc id="ticket-state-desc">三台状态机：订单从待支付经支付回调或超时关单分别进入已支付与已取消，两条转换都以 status 等于 0 为条件先到先得；支付单从未支付分至支付成功、支付失败与已关闭；发件箱从中继投递成功进入已投递，发送失败保持待投递无限重试、无失败终态。</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      </defs>
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ============ 分区（先画） ============ -->
+      <rect x="48" y="96" width="1024" height="224" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <rect x="48" y="344" width="1024" height="136" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <rect x="48" y="504" width="1024" height="152" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+
+      <!-- ============ 转换箭头（先线后盒） ============ -->
+      <!-- 订单：支付回调 → 已支付 -->
+      <path d="M 320 190 H 442 Q 450 190 450 182 V 168 Q 450 160 458 160 H 580"
+            fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="466" y="140" width="96" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="514" y="150" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">支付回调 [0]</text>
+      <!-- 订单：超时关单 → 已取消 -->
+      <path d="M 320 226 H 442 Q 450 226 450 234 V 264 Q 450 272 458 272 H 580"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="458" y="252" width="112" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="514" y="262" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">超时关单 [0]</text>
+      <!-- 支付单三条 -->
+      <line x1="290" y1="424" x2="360" y2="424" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="303" y="404" width="44" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="325" y="414" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">回调成功</text>
+      <line x1="510" y1="424" x2="580" y2="424" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="523" y="404" width="44" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="545" y="414" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">渠道拒绝</text>
+      <line x1="730" y1="424" x2="800" y2="424" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="743" y="404" width="44" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="765" y="414" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">订单超时</text>
+      <!-- 发件箱自环 + 投递 -->
+      <path d="M 200 552 V 536 Q 200 524 212 524 H 248 Q 260 524 260 536 V 552"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="270" y="528" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" letter-spacing="0.06em">发送失败重试</text>
+      <line x1="320" y1="584" x2="430" y2="584" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="345" y="564" width="60" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="375" y="574" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">中继投递</text>
+
+      <!-- ============ 分区标签 ============ -->
+      <g font-size="9" font-family="'Geist Mono', monospace" fill="rgba(45,49,66,0.55)" letter-spacing="0.12em">
+        <text x="60" y="112">t_order · 订单</text>
+        <text x="60" y="360">t_payment · 支付单</text>
+        <text x="60" y="520">t_outbox · 发件箱</text>
+      </g>
+
+      <!-- ============ 订单状态 ============ -->
+      <!-- 起点 -->
+      <circle cx="90" cy="208" r="6" fill="#2d3142"/>
+      <line x1="96" y1="208" x2="140" y2="208" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <!-- 待支付（焦点：唯一竞争态） -->
+      <rect x="140" y="176" width="180" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="140" y="176" width="180" height="64" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="214" y="206" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">待支付</text>
+      <text x="214" y="226" fill="rgba(235,108,54,0.85)" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 0</text>
+      <!-- 已支付 -->
+      <rect x="580" y="128" width="200" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="580" y="128" width="200" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="668" y="158" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">已支付</text>
+      <text x="668" y="178" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 1</text>
+      <circle cx="756" cy="160" r="8" fill="none" stroke="#4f5d75" stroke-width="1"/><circle cx="756" cy="160" r="5" fill="#4f5d75"/>
+      <!-- 已取消 -->
+      <rect x="580" y="240" width="200" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="580" y="240" width="200" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="668" y="270" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">已取消</text>
+      <text x="668" y="290" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 2</text>
+      <circle cx="756" cy="272" r="8" fill="none" stroke="#4f5d75" stroke-width="1"/><circle cx="756" cy="272" r="5" fill="#4f5d75"/>
+
+      <!-- ============ 支付单状态 ============ -->
+      <rect x="140" y="392" width="150" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="140" y="392" width="150" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="215" y="422" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">未支付</text>
+      <text x="215" y="442" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 0</text>
+      <rect x="360" y="392" width="150" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="360" y="392" width="150" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="435" y="422" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">支付成功</text>
+      <text x="435" y="442" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 1</text>
+      <circle cx="486" cy="424" r="8" fill="none" stroke="#4f5d75" stroke-width="1"/><circle cx="486" cy="424" r="5" fill="#4f5d75"/>
+      <rect x="580" y="392" width="150" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="580" y="392" width="150" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="655" y="422" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">支付失败</text>
+      <text x="655" y="442" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 2</text>
+      <circle cx="706" cy="424" r="8" fill="none" stroke="#4f5d75" stroke-width="1"/><circle cx="706" cy="424" r="5" fill="#4f5d75"/>
+      <rect x="800" y="392" width="150" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="800" y="392" width="150" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="875" y="422" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">已关闭</text>
+      <text x="875" y="442" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 3</text>
+      <circle cx="926" cy="424" r="8" fill="none" stroke="#4f5d75" stroke-width="1"/><circle cx="926" cy="424" r="5" fill="#4f5d75"/>
+
+      <!-- ============ 发件箱状态 ============ -->
+      <rect x="140" y="552" width="180" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="140" y="552" width="180" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="230" y="582" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">待投递</text>
+      <text x="230" y="602" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 0</text>
+      <rect x="430" y="552" width="180" height="64" rx="8" fill="#f5f5f5"/>
+      <rect x="430" y="552" width="180" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="508" y="582" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist','Noto Sans SC',sans-serif" text-anchor="middle">已投递</text>
+      <text x="508" y="602" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">status = 1</text>
+      <circle cx="586" cy="584" r="8" fill="none" stroke="#4f5d75" stroke-width="1"/><circle cx="586" cy="584" r="5" fill="#4f5d75"/>
+      <text x="640" y="590" fill="#4f5d75" font-size="11" font-style="italic" font-family="'Instrument Serif','Noto Serif SC',serif">无失败终态 · 失败不推进状态，下轮轮询继续重试</text>
+
+      <!-- ============ 图例 ============ -->
+      <line x1="48" y1="676" x2="1072" y2="676" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="48" y="700" fill="#4f5d75" font-size="8" font-family="'Geist Mono',monospace" letter-spacing="0.14em">LEGEND</text>
+      <g font-size="9" fill="#4f5d75" font-family="'Geist Mono','Noto Sans SC',monospace">
+        <text x="120" y="700">方框 = 状态 · 圆环 = 终态</text>
+        <text x="300" y="700">实线 = 条件转换 [status=0]</text>
+        <text x="490" y="700">橙色 = 竞态分支</text>
+      </g>
+      <rect x="620" y="692" width="8" height="8" rx="2" fill="rgba(235,108,54,0.30)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="636" y="700" fill="#4f5d75" font-size="9" font-family="'Noto Sans SC', sans-serif">唯一竞争态</text>
+    </svg>
+  </div>
+</body>
+</html>
