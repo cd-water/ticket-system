@@ -14,9 +14,9 @@ public class Outbox {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String exchange;
+    private String topic;
 
-    private String routingKey;
+    private String messageKey;
 
     private String payload;
 

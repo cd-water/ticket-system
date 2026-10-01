@@ -6,11 +6,11 @@
 
 ## 技术栈
 
-**后端**：Java 21、Spring Boot 3.5、Maven 多模块、Spring Security + JWT（JJWT）、MyBatis-Plus、Redis（Redisson）、RabbitMQ、AWS S3 SDK（MinIO）、MapStruct、Lombok
+**后端**：Java 21、Spring Boot 3.5、Maven 多模块、Spring Security + JWT（JJWT）、MyBatis-Plus、Redis（Redisson）、Kafka、MapStruct、Lombok
 
 **前端**：Vue 3、TypeScript、Vite、pnpm、Tailwind CSS 4、shadcn-vue（reka-ui）、Pinia（持久化插件）、Vue Router、vee-validate + zod、axios
 
-**基础设施**：Docker Compose — MySQL 8、Redis 7、RabbitMQ 4.1、MinIO
+**基础设施**：Docker Compose — MySQL 8、Redis 7、Kafka 4.1
 
 ## 核心设计
 
@@ -32,9 +32,8 @@
 ├── frontend/         # Vue 3 前端，端口 5600，/api 代理到后端 8600
 ├── docs/             # 设计文档：ER 图、架构图、时序图
 └── infra/
-    ├── docker/       # docker-compose：MySQL / Redis / RabbitMQ / MinIO
-    ├── db/           # 建表 schema.sql、初始数据 seed.sql
-    └── rabbitmq/     # 延迟消息插件
+    ├── docker/       # docker-compose：MySQL / Redis / Kafka
+    └── db/           # 建表 schema.sql、初始数据 seed.sql
 ```
 
 模块依赖方向：`ticket-boot → ticket-booking → { ticket-auth, ticket-event } → ticket-common`
@@ -46,7 +45,7 @@
 ```bash
 cd infra/docker
 cp .env.example .env    # 已有 .env 则跳过
-docker compose up -d    # MySQL :3306、Redis :6379、RabbitMQ :5672/:15672、MinIO :9000/:9001
+docker compose up -d    # MySQL :3306、Redis :6379、Kafka :9092
 ```
 
 `schema.sql` / `seed.sql` 仅在 MySQL 数据卷首次初始化时执行。

@@ -31,7 +31,7 @@
 
     <svg viewBox="0 0 1120 752" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="seq-timeout-title seq-timeout-desc">
       <title id="seq-timeout-title">超时关单时序图</title>
-      <desc id="seq-timeout-desc">超时关单流程，抢票与选座双模式：中继轮询发件箱到期消息经 RabbitMQ 投递关单消费者，消费者先以订单状态 CAS 关单；rows=1 时抢票模式回补 Redis 库存并删除一人一单资格键，选座模式清除座位位图、座位锁随 TTL 自动过期；rows=0 表示订单已支付，静默 ACK。</desc>
+      <desc id="seq-timeout-desc">超时关单流程，抢票与选座双模式：中继轮询发件箱到期消息经 Kafka 投递关单消费者，消费者先以订单状态 CAS 关单；rows=1 时抢票模式回补 Redis 库存并删除一人一单资格键，选座模式清除座位位图、座位锁随 TTL 自动过期；rows=0 表示订单已支付，静默 ACK。</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
         <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
@@ -64,7 +64,7 @@
       <text x="212" y="188" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">到期消息批次</text>
       <line x1="104" y1="240" x2="321" y2="240" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-open)"/>
       <rect x="152" y="218" width="120" height="12" rx="2" fill="#f5f5f5"/>
-      <text x="212" y="228" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">publish · 交换机/路由键</text>
+      <text x="212" y="228" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">publish · topic/key</text>
       <line x1="329" y1="280" x2="546" y2="280" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-open)"/>
       <rect x="402" y="258" width="72" height="12" rx="2" fill="#f5f5f5"/>
       <text x="438" y="268" fill="#7a8399" font-size="8" font-family="'Geist Mono','Noto Sans SC',monospace" text-anchor="middle" letter-spacing="0.06em">投递关单消息</text>
@@ -104,7 +104,7 @@
         <rect x="24" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="24" y="48" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
         <text x="100" y="70" fill="#2d3142">中继</text><text x="100" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">Outbox Relay</text>
         <rect x="249" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="249" y="48" width="152" height="48" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
-        <text x="325" y="70" fill="#2d3142">RabbitMQ</text><text x="325" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">:5672</text>
+        <text x="325" y="70" fill="#2d3142">Kafka</text><text x="325" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">:9092</text>
         <rect x="474" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="474" y="48" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
         <text x="550" y="70" fill="#2d3142">关单消费者</text><text x="550" y="86" fill="#4f5d75" font-size="9" font-weight="400" font-family="'Geist Mono',monospace">Close Consumer</text>
         <rect x="699" y="48" width="152" height="48" rx="6" fill="#f5f5f5"/><rect x="699" y="48" width="152" height="48" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>

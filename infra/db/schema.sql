@@ -95,8 +95,8 @@ CREATE TABLE `t_payment`
 CREATE TABLE `t_outbox`
 (
     `id`           BIGINT        NOT NULL AUTO_INCREMENT COMMENT '消息ID（主键）',
-    `exchange`     VARCHAR(64)   NOT NULL COMMENT '目标交换机',
-    `routing_key`  VARCHAR(64)   NOT NULL COMMENT '路由键',
+    `topic`        VARCHAR(64)   NOT NULL COMMENT '目标主题',
+    `message_key`  VARCHAR(64)   NOT NULL COMMENT '消息键',
     `payload`      VARCHAR(1024) NOT NULL COMMENT '消息体（JSON）',
     `deliver_time` DATETIME      NOT NULL COMMENT '期望投递时间',
     `status`       TINYINT       NOT NULL DEFAULT 0 COMMENT '状态（0-待投递 1-已投递）',

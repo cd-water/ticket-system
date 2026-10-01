@@ -61,7 +61,7 @@
 
     <svg viewBox="0 0 1120 736" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ticket-architecture-title ticket-architecture-desc">
       <title id="ticket-architecture-title">架构图</title>
-      <desc id="ticket-architecture-desc">高并发票务系统的模块化单体架构：Vue 前端经 HTTP 调用 Spring Boot 单体，单体聚合 booking、auth、event 三个业务模块与 common 公共基座，向下访问 MySQL、Redis 与 RabbitMQ 三项基础设施。</desc>
+      <desc id="ticket-architecture-desc">高并发票务系统的模块化单体架构：Vue 前端经 HTTP 调用 Spring Boot 单体，单体聚合 booking、auth、event 三个业务模块与 common 公共基座，向下访问 MySQL、Redis 与 Kafka 三项基础设施。</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
         <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
@@ -92,12 +92,12 @@
       <!-- common → Redis：同步缓存与锁 -->
       <path d="M 560 456 V 568" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 
-      <!-- common → RabbitMQ：Outbox 中继投递 -->
+      <!-- common → Kafka：Outbox 中继投递 -->
       <path d="M 776 456 V 568" fill="none" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
       <rect x="732" y="490" width="36" height="12" rx="2" fill="#f5f5f5"/>
       <text x="768" y="500" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans SC', monospace" text-anchor="end" letter-spacing="0.06em">投递</text>
 
-      <!-- RabbitMQ → common：异步关单消费 -->
+      <!-- Kafka → common：异步关单消费 -->
       <path d="M 808 568 V 456" fill="none" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
       <rect x="816" y="506" width="36" height="12" rx="2" fill="#f5f5f5"/>
       <text x="820" y="516" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans SC', monospace" letter-spacing="0.06em">消费</text>
@@ -173,13 +173,13 @@
       <text x="648" y="585" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">:6379 · Redisson</text>
       <line x1="472" y1="596" x2="648" y2="596" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
       <text x="560" y="620" fill="#4f5d75" font-size="10" font-family="'Geist', 'Noto Sans SC', sans-serif" text-anchor="middle">缓存 · 分布式锁</text>
-      <!-- RabbitMQ（焦点） -->
+      <!-- Kafka（焦点） -->
       <rect x="696" y="568" width="192" height="72" rx="6" fill="#f5f5f5"/>
       <rect x="696" y="568" width="192" height="72" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
       <rect x="704" y="574" width="26" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.40)" stroke-width="0.8"/>
       <text x="717" y="583" fill="rgba(235,108,54,0.80)" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">MQ</text>
-      <text x="738" y="586" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans SC', sans-serif">RabbitMQ</text>
-      <text x="880" y="585" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">:5672</text>
+      <text x="738" y="586" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans SC', sans-serif">Kafka</text>
+      <text x="880" y="585" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">:9092</text>
       <line x1="704" y1="596" x2="880" y2="596" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
       <text x="792" y="620" fill="#4f5d75" font-size="10" font-family="'Geist', 'Noto Sans SC', sans-serif" text-anchor="middle">异步消息</text>
 

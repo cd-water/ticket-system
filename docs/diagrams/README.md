@@ -6,7 +6,7 @@
 
 | 图 | 文件 | 说明 |
 |---|---|---|
-| 架构图 | [ticket-architecture.html](ticket-architecture.html) | 模块化单体分层：boot 聚合 booking / auth / event 业务模块与 common 基座，向下依赖 MySQL、Redis、RabbitMQ |
+| 架构图 | [ticket-architecture.html](ticket-architecture.html) | 模块化单体分层：boot 聚合 booking / auth / event 业务模块与 common 基座，向下依赖 MySQL、Redis、Kafka |
 | 数据库 ER 图 | [ticket-er.html](ticket-er.html) | 七张表实体关系：活动派生库存与座位，用户/活动/座位汇聚为订单，订单关联支付单与发件箱 |
 
 ## 时序图
