@@ -59,9 +59,9 @@
     <p class="eyebrow">ARCHITECTURE · TICKET SYSTEM</p>
     <h1>架构图</h1>
 
-    <svg viewBox="0 0 1120 736" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ticket-architecture-title ticket-architecture-desc">
+    <svg viewBox="0 0 1120 860" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ticket-architecture-title ticket-architecture-desc">
       <title id="ticket-architecture-title">架构图</title>
-      <desc id="ticket-architecture-desc">高并发票务系统的模块化单体架构：Vue 前端经 HTTP 调用 Spring Boot 单体，单体聚合 booking、auth、event 三个业务模块与 common 公共基座，向下访问 MySQL、Redis 与 Kafka 三项基础设施。</desc>
+      <desc id="ticket-architecture-desc">高并发票务系统的模块化单体架构：Vue 前端经 HTTP 调用 Spring Boot 单体，单体聚合 booking、auth、event 三个业务模块与 common 公共基座，向下访问 MySQL、Redis 与 Kafka 三项业务依赖；另有 Prometheus 与 Grafana 构成的可观测性横条，从外部拉取指标、不参与业务链路。</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
         <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
@@ -76,7 +76,7 @@
       <rect x="132" y="170" width="176" height="14" rx="2" fill="#f5f5f5"/>
       <text x="136" y="182" fill="rgba(45,49,66,0.55)" font-size="9" font-family="'Geist Mono', monospace" letter-spacing="0.14em">SPRING BOOT 模块化单体 :8600</text>
       <!-- 基础设施分区 -->
-      <rect x="120" y="528" width="880" height="136" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="120" y="528" width="880" height="248" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
       <rect x="132" y="530" width="122" height="14" rx="2" fill="#f5f5f5"/>
       <text x="136" y="542" fill="rgba(45,49,66,0.55)" font-size="9" font-family="'Geist Mono', monospace" letter-spacing="0.14em">DOCKER COMPOSE 基础设施</text>
 
@@ -183,16 +183,26 @@
       <line x1="704" y1="596" x2="880" y2="596" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
       <text x="792" y="620" fill="#4f5d75" font-size="10" font-family="'Geist', 'Noto Sans SC', sans-serif" text-anchor="middle">异步消息</text>
 
+      <!-- ============ 可观测性横条（辅助工具，非业务依赖） ============ -->
+      <text x="136" y="736" fill="#7a8399" font-size="9" font-family="'Geist Mono', 'Noto Sans SC', monospace" letter-spacing="0.04em">可观测性</text>
+      <rect x="232" y="696" width="656" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="232" y="696" width="656" height="72" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="240" y="702" width="36" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="258" y="711" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OBS</text>
+      <text x="284" y="714" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans SC', sans-serif">指标采集与可视化</text>
+      <line x1="240" y1="728" x2="880" y2="728" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <text x="560" y="748" fill="#4f5d75" font-size="10" font-family="'Geist', 'Noto Sans SC', sans-serif" text-anchor="middle">Prometheus :9090 定时拉取 · Grafana :3000 面板呈现 · 外部采集，不参与业务链路</text>
+
       <!-- ============ 图例（底部横条） ============ -->
-      <line x1="48" y1="692" x2="1072" y2="692" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
-      <text x="48" y="716" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+      <line x1="48" y1="816" x2="1072" y2="816" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="48" y="840" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
       <g font-size="9" fill="#4f5d75" font-family="'Geist Mono', 'Noto Sans SC', monospace">
-        <text x="120" y="716">实线 = 同步调用</text>
-        <text x="250" y="716">虚线 = 异步消息</text>
-        <text x="380" y="716">蓝色 = 外部 HTTP</text>
+        <text x="120" y="840">实线 = 同步调用</text>
+        <text x="250" y="840">虚线 = 异步消息</text>
+        <text x="380" y="840">蓝色 = 外部 HTTP</text>
       </g>
-      <rect x="520" y="708" width="8" height="8" rx="2" fill="rgba(235,108,54,0.30)" stroke="#eb6c36" stroke-width="1"/>
-      <text x="536" y="716" fill="#4f5d75" font-size="9" font-family="'Noto Sans SC', sans-serif">并发主战场</text>
+      <rect x="520" y="832" width="8" height="8" rx="2" fill="rgba(235,108,54,0.30)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="536" y="840" fill="#4f5d75" font-size="9" font-family="'Noto Sans SC', sans-serif">并发主战场</text>
     </svg>
   </div>
 </body>
