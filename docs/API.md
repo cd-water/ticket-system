@@ -338,7 +338,7 @@ Authorization: Bearer {accessToken}
   "code": "A200",
   "message": "Success",
   "data": {
-    "orderNo": 7845129365720192512,
+    "orderNo": "7845129365720192512",
     "amount": 600.00,
     "expireTime": "2026-10-03T15:30:00",
     "eventName": "周杰伦2023嘉年华世界巡回演唱会-上海站",
@@ -350,7 +350,7 @@ Authorization: Bearer {accessToken}
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `orderNo` | long | 订单号，支付与查询均以此为键 |
+| `orderNo` | string | 订单号，支付与查询均以此为键。雪花算法 ID 超出 JS 安全整数范围，故以字符串返回 |
 | `amount` | decimal | 应付金额 |
 | `expireTime` | datetime | 支付截止时间，前端据此渲染倒计时 |
 | `eventName` | string | 活动名称 |
@@ -367,7 +367,7 @@ Authorization: Bearer {accessToken}
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
-| `orderNo` | long | 是 | 订单号 |
+| `orderNo` | string | 是 | 订单号，取自下单响应的 `orderNo`，原样回传 |
 
 **响应**：`data` 为 `null`，前端提示「支付成功」
 
@@ -398,7 +398,7 @@ Authorization: Bearer {accessToken}
     "total": 1,
     "records": [
       {
-        "orderNo": 7845129365720192512,
+        "orderNo": "7845129365720192512",
         "eventId": 2,
         "eventName": "周杰伦2023嘉年华世界巡回演唱会-上海站",
         "eventAddress": "上海市徐汇区天钥桥路666号上海体育场",
@@ -419,7 +419,7 @@ Authorization: Bearer {accessToken}
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `orderNo` | long | 订单号 |
+| `orderNo` | string | 订单号 |
 | `eventId` | long | 活动 ID |
 | `eventName` | string | 活动名称 |
 | `eventAddress` | string | 活动地址 |

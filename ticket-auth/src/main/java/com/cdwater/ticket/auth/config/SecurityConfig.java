@@ -23,6 +23,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(a -> a
                         // 监控端点不参与认证：Prometheus 不持有用户凭据
                         .requestMatchers("/actuator/**").permitAll()
+                        // Mock 阶段：业务接口尚无 JWT 过滤器，先放行供前端联调
+                        // TODO JWT 过滤器接入后收回 /api/** 的放行，届时仅 /actuator/** 免认证
+                        .requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }
