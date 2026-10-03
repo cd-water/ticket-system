@@ -84,7 +84,7 @@
       <!-- 订单 1:1 支付单 -->
       <path d="M 648 406 H 744" stroke="#4f5d75" stroke-width="1" fill="none"/>
       <!-- 订单 1:N 发件箱（payload.orderNo 逻辑引用，无外键，虚线） -->
-      <path d="M 560 492 V 560" stroke="#4f5d75" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
+      <path d="M 560 506 V 560" stroke="#4f5d75" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
 
       <!-- ============ 基数标注（离线 8px 以上） ============ -->
       <g font-family="'Geist Mono', monospace" font-size="8" fill="#7a8399" letter-spacing="0.06em">
@@ -100,7 +100,7 @@
         <text x="608" y="312">N</text>
         <text x="656" y="396">1</text>
         <text x="734" y="396" text-anchor="end">0..1</text>
-        <text x="568" y="502">1</text>
+        <text x="568" y="520">1</text>
         <text x="568" y="552">N</text>
       </g>
 
@@ -167,8 +167,8 @@
       </g>
 
       <!-- ============ 实体：订单（聚合根，唯一焦点） ============ -->
-      <rect x="472" y="320" width="176" height="172" rx="6" fill="#f5f5f5"/>
-      <rect x="472" y="320" width="176" height="172" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <rect x="472" y="320" width="176" height="186" rx="6" fill="#f5f5f5"/>
+      <rect x="472" y="320" width="176" height="186" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
       <rect x="482" y="328" width="34" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.40)" stroke-width="0.8"/>
       <text x="499" y="337" fill="rgba(235,108,54,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
       <text x="524" y="338" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans SC', sans-serif">t_order</text>
@@ -184,6 +184,7 @@
         <text x="484" y="448" fill="#4f5d75">status TINYINT</text>
         <text x="484" y="462" fill="#4f5d75">expire_time DATETIME</text>
         <text x="484" y="476" fill="#4f5d75">pay_time DATETIME ?</text>
+        <text x="484" y="490" fill="#4f5d75">create_time DATETIME</text>
       </g>
 
       <!-- ============ 实体：支付单 ============ -->

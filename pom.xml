@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.16</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
 
-	<groupId>com.cdwater</groupId>
-	<artifactId>ticket-system</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+    <groupId>com.cdwater</groupId>
+    <artifactId>ticket-system</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>ticket-system</name>
-	<description>ticket-system</description>
+    <description>ticket-system</description>
 
+    <!-- 依赖方向：boot → booking → {auth, event} → common -->
     <modules>
         <module>ticket-common</module>
         <module>ticket-auth</module>
@@ -25,12 +26,12 @@
     </modules>
 
     <properties>
-		<java.version>21</java.version>
+        <java.version>21</java.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <redisson.version>3.52.0</redisson.version>
         <jjwt.version>0.12.6</jjwt.version>
-	</properties>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -42,7 +43,6 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -111,8 +111,8 @@
         </dependencies>
     </dependencyManagement>
 
-	<build>
-		<plugins>
+    <build>
+        <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -130,7 +130,7 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-		</plugins>
-	</build>
+        </plugins>
+    </build>
 
 </project>

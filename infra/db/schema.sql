@@ -63,9 +63,11 @@ CREATE TABLE `t_order`
     `status`      TINYINT        NOT NULL DEFAULT 0 COMMENT '状态（0-待支付 1-已支付 2-已取消）',
     `expire_time` DATETIME       NOT NULL COMMENT '支付截止时间',
     `pay_time`    DATETIME       NULL COMMENT '支付时间',
+    `create_time` DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`),
-    KEY `idx_user` (`user_id`)
+    KEY `idx_user` (`user_id`),
+    KEY `idx_user_create` (`user_id`, `create_time`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT = '订单表';

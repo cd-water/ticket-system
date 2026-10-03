@@ -30,4 +30,6 @@ public class Order {
     private LocalDateTime expireTime;
 
     private LocalDateTime payTime;
+
+    private LocalDateTime createTime;
 }
