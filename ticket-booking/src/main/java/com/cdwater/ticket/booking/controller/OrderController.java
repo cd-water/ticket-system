@@ -116,6 +116,7 @@ public class OrderController {
         order.setAmount(event.getPrice());
         order.setStatus(STATUS_UNPAID);
         order.setSeat(seat);
+        order.setSeatId(seat == null ? null : request.getSeatId());
         order.setCreateTime(now);
         order.setExpireTime(now.plusMinutes(EXPIRE_MINUTES));
         ORDERS.add(order);
@@ -144,6 +145,37 @@ public class OrderController {
         order.setStatus(STATUS_PAID);
         order.setPayTime(LocalDateTime.now());
         return Result.success();
+    }
+
+    /** 手动取消与前端倒计时归零共用同一入口 */
+    @PostMapping("/orders/cancel")
+    public Result<Void> cancel(@RequestBody @Valid CancelRequest request) {
+        OrderVO order = ORDERS.stream()
+                .filter(o -> String.valueOf(o.getOrderNo()).equals(request.getOrderNo()))
+                .findFirst()
+                .orElseThrow(() -> new BizException(ResultCode.NOT_FOUND.getCode(), "订单不存在"));
+
+        if (order.getStatus() != STATUS_UNPAID) {
+            throw new BizException(ResultCode.CONFLICT.getCode(), "订单已支付或已关闭");
+        }
+        order.setStatus(STATUS_CANCELLED);
+        releaseResources(order);
+        return Result.success();
+    }
+
+    /** 取消或超时关单时把座位与库存还给活动，座位图才能重新可选 */
+    private static void releaseResources(OrderVO order) {
+        Snapshot event = EVENTS.stream().filter(e -> e.getId() == order.getEventId()).findFirst().orElse(null);
+        if (event == null) return;
+
+        if (event.getMode() == MODE_TICKET) {
+            STOCK.merge(order.getEventId(), 1, Integer::sum);
+            return;
+        }
+        Set<Long> sold = SOLD_SEATS.get(order.getEventId());
+        if (order.getSeatId() != null && sold != null) {
+            sold.remove(order.getSeatId());
+        }
     }
 
     /** 选座模式要求 seatId 且座位未被占用；抢票模式扣减内存库存并返回空座位 */
@@ -195,6 +227,7 @@ public class OrderController {
         order.setAmount(event.getPrice());
         order.setStatus(status);
         order.setSeat(seatId == null ? null : toPosition(event, seatId));
+        order.setSeatId(seatId);
         order.setCreateTime(created);
         order.setExpireTime(created.plusMinutes(EXPIRE_MINUTES));
         if (status == STATUS_PAID) {
@@ -251,6 +284,12 @@ public class OrderController {
     }
 
     @Data
+    public static class CancelRequest {
+        @NotBlank
+        private String orderNo;
+    }
+
+    @Data
     public static class CreateOrderVO {
         /** 雪花算法 ID 超出 JS 安全整数范围，序列化为字符串避免前端丢精度 */
         @JsonSerialize(using = ToStringSerializer.class)
@@ -273,6 +312,8 @@ public class OrderController {
         private BigDecimal amount;
         private int status;
         private SeatPosition seat;
+        /** 取消/关单时按它归还座位，与 seat 展示字段解耦 */
+        private Long seatId;
         private LocalDateTime createTime;
         private LocalDateTime expireTime;
         private LocalDateTime payTime;

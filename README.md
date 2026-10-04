@@ -72,3 +72,5 @@ pnpm install
 pnpm dev       # 开发服务器，端口 5600，/api 代理到 localhost:8600
 pnpm build     # 类型检查（vue-tsc）+ 生产构建
 ```
+
+生产部署需配置 SPA 回退（如 nginx `try_files $uri $uri/ /index.html`），否则刷新 `/orders` 等深链会 404 —— 路由使用 history 模式。

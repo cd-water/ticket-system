@@ -63,6 +63,22 @@ public class EventController {
         return Result.success(page(matched, page, size));
     }
 
+    /** 详情页入口：先取元信息拿 mode，再按模式拉抢票或座位详情，省一次试探请求 */
+    @GetMapping("/{eventId}")
+    public Result<EventMetaVO> meta(@PathVariable long eventId) {
+        MockEvent event = require(eventId);
+
+        EventMetaVO vo = new EventMetaVO();
+        vo.setId(event.getId());
+        vo.setName(event.getName());
+        vo.setAddress(event.getAddress());
+        vo.setPrice(event.getPrice());
+        vo.setMode(event.getMode());
+        vo.setRowCount(event.getRowCount());
+        vo.setColCount(event.getColCount());
+        return Result.success(vo);
+    }
+
     @GetMapping("/{eventId}/ticket")
     public Result<TicketDetailVO> ticketDetail(@PathVariable long eventId) {
         MockEvent event = require(eventId);
@@ -164,6 +180,18 @@ public class EventController {
         private String name;
         private String address;
         private BigDecimal price;
+    }
+
+    @Data
+    public static class EventMetaVO {
+        private Long id;
+        private String name;
+        private String address;
+        private BigDecimal price;
+        private int mode;
+        /** 仅选座模式有值，前端可据此在未拉座位图前先排版 */
+        private int rowCount;
+        private int colCount;
     }
 
     @Data

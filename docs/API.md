@@ -70,6 +70,8 @@ Authorization: Bearer {accessToken}
 | 10 | POST | `/api/orders` | ✅ |
 | 11 | POST | `/api/pay` | ✅ |
 | 12 | GET | `/api/orders` | ✅ |
+| 13 | GET | `/api/events/{eventId}` | — |
+| 14 | POST | `/api/orders/cancel` | ✅ |
 
 ---
 
@@ -230,7 +232,45 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 2.2 抢票活动详情
+### 2.2 活动元信息
+
+`GET /api/events/{eventId}`　鉴权：否
+
+详情页入口：先取本接口拿到 `mode`，再按模式调 [2.3](#23-抢票活动详情) 或 [2.4](#24-选座活动详情)。
+
+**请求**：路径参数 `eventId`（long，必填）
+
+**响应**
+
+```json
+{
+  "code": "A200",
+  "message": "Success",
+  "data": {
+    "id": 1,
+    "name": "Bilibili World 2023（BW2023）",
+    "address": "上海市青浦区诸光路1888号国家会展中心（上海）",
+    "price": 98.00,
+    "mode": 1,
+    "rowCount": 0,
+    "colCount": 0
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `id` | long | 活动 ID |
+| `name` | string | 活动名称 |
+| `address` | string | 活动地址 |
+| `price` | decimal | 活动票价 |
+| `mode` | int | `1`=抢票，`2`=选座 |
+| `rowCount` | int | 总排数，选座模式有意义 |
+| `colCount` | int | 每排座数，选座模式有意义 |
+
+---
+
+### 2.3 抢票活动详情
 
 `GET /api/events/{eventId}/ticket`　鉴权：否　适用：`mode=1`
 
@@ -262,7 +302,7 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 2.3 选座活动详情
+### 2.4 选座活动详情
 
 `GET /api/events/{eventId}/seat`　鉴权：否　适用：`mode=2`
 
@@ -359,7 +399,24 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 3.2 支付订单
+### 3.2 取消订单 / 超时关单
+
+`POST /api/orders/cancel`　鉴权：✅
+
+**请求**
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `orderNo` | string | 是 | 订单号，取自下单响应的 `orderNo` |
+
+**响应**：`data` 为 `null`
+
+订单状态由 `0-待支付` 转为 `2-已取消`，同时把座位或库存归还给活动。
+订单不存在返回 `C404`，订单已是已支付/已取消返回 `C409`。
+
+---
+
+### 3.3 支付订单
 
 `POST /api/pay`　鉴权：✅
 
@@ -375,7 +432,7 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 3.3 订单分页查询
+### 3.4 订单分页查询
 
 `GET /api/orders`　鉴权：✅
 

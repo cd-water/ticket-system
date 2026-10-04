@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,6 +48,23 @@ class MockApiSmokeTest {
         mvc.perform(get("/api/events").param("mode", "1").param("page", "1").param("size", "2"))
                 .andExpect(jsonPath("$.data.total").value(3))
                 .andExpect(jsonPath("$.data.records.length()").value(2));
+    }
+
+    @Test
+    void 活动元信息返回购票模式() throws Exception {
+        mvc.perform(get("/api/events/1"))
+                .andExpect(jsonPath("$.code").value("A200"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.mode").value(1))
+                .andExpect(jsonPath("$.data.name").value("Bilibili World 2023（BW2023）"))
+                .andExpect(jsonPath("$.data.price").value(98.00));
+
+        mvc.perform(get("/api/events/2"))
+                .andExpect(jsonPath("$.data.mode").value(2))
+                .andExpect(jsonPath("$.data.rowCount").value(4));
+
+        mvc.perform(get("/api/events/99"))
+                .andExpect(jsonPath("$.code").value("C404"));
     }
 
     @Test
@@ -204,9 +223,10 @@ class MockApiSmokeTest {
 
     @Test
     void 订单按订单号与状态精确查询() throws Exception {
+        // 取消类用例会追加已取消订单，数量不固定，验证过滤后的每条记录都是已取消
         mvc.perform(get("/api/orders").param("status", "2"))
                 .andExpect(jsonPath("$.code").value("A200"))
-                .andExpect(jsonPath("$.data.total").value(1))
+                .andExpect(jsonPath("$.data.records[*].status").value(everyItem(is(2))))
                 .andExpect(jsonPath("$.data.records[0].status").value(2));
 
         mvc.perform(get("/api/orders").param("orderNo", "7845129365720192513"))
@@ -215,5 +235,53 @@ class MockApiSmokeTest {
 
         mvc.perform(get("/api/orders").param("orderNo", "1"))
                 .andExpect(jsonPath("$.data.total").value(0));
+    }
+
+    @Test
+    void 取消待支付订单() throws Exception {
+        String body = mvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"eventId\":3}"))
+                .andExpect(jsonPath("$.code").value("A200"))
+                .andReturn().getResponse().getContentAsString();
+        String orderNo = com.jayway.jsonpath.JsonPath.read(body, "$.data.orderNo");
+
+        mvc.perform(post("/api/orders/cancel").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"orderNo\":\"" + orderNo + "\"}"))
+                .andExpect(jsonPath("$.code").value("A200"));
+
+        mvc.perform(get("/api/orders").param("orderNo", orderNo))
+                .andExpect(jsonPath("$.data.total").value(1))
+                .andExpect(jsonPath("$.data.records[0].status").value(2));
+
+        // 抢票库存归还无法经 HTTP 验证：/events/{id}/ticket 返回 EventController 的常量种子，
+        // 而取消改动的是 OrderController.STOCK，两份 Mock 状态互不相通；座位模式的归还可由
+        // 「取消选座订单归还座位」再次下同一座位验证。
+
+        // 已取消的订单不能再取消
+        mvc.perform(post("/api/orders/cancel").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"orderNo\":\"" + orderNo + "\"}"))
+                .andExpect(jsonPath("$.code").value("C409"));
+
+        mvc.perform(post("/api/orders/cancel").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"orderNo\":\"1\"}"))
+                .andExpect(jsonPath("$.code").value("C404"));
+    }
+
+    @Test
+    void 取消选座订单归还座位() throws Exception {
+        String body = mvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"eventId\":2,\"seatId\":20}"))
+                .andExpect(jsonPath("$.code").value("A200"))
+                .andReturn().getResponse().getContentAsString();
+        String orderNo = com.jayway.jsonpath.JsonPath.read(body, "$.data.orderNo");
+
+        mvc.perform(post("/api/orders/cancel").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"orderNo\":\"" + orderNo + "\"}"))
+                .andExpect(jsonPath("$.code").value("A200"));
+
+        // 座位归还后可以再次下单
+        mvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"eventId\":2,\"seatId\":20}"))
+                .andExpect(jsonPath("$.code").value("A200"));
     }
 }
