@@ -1,17 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Search } from '@lucide/vue'
+import { Search, SearchX } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from '@/components/ui/empty'
+import { Empty, EmptyMedia } from '@/components/ui/empty'
 import EventCardTile from '@/components/business/EventCardTile.vue'
 import { listEvents } from '@/api/event'
 import { ApiError } from '@/api/http'
@@ -57,7 +52,7 @@ async function load() {
       size: PAGE_SIZE,
     })
     if (id !== seq) return
-    // 越界页码后端返回空切片，回退第 1 页重拉，否则空态会谎称「没有找到相关活动」；
+    // 越界页码后端返回空切片，回退第 1 页重拉，否则空态会谎称「没有找到活动」；
     // total > 0 只是不把真正的空结果误弹回第 1 页，防死循环靠 page > 1 一条
     if (!result.records.length && result.total > 0 && page.value > 1) {
       await router.replace({ query: { ...route.query, page: '1' } })
@@ -121,11 +116,13 @@ function goPage(next: number) {
       <p class="mt-2 text-sm text-muted-foreground">稍后再试</p>
     </div>
 
-    <Empty v-else-if="!records.length" class="rounded-[20px] border-2 border-dashed border-border bg-card py-16">
-      <EmptyHeader>
-        <EmptyTitle>没有找到相关活动</EmptyTitle>
-        <EmptyDescription>换个关键词试试</EmptyDescription>
-      </EmptyHeader>
+    <Empty v-else-if="!records.length" class="py-18 md:py-18">
+      <EmptyMedia
+        variant="icon"
+        class="size-24 rounded-full bg-primary/20 text-primary-foreground [&_svg:not([class*='size-'])]:size-11"
+      >
+        <SearchX />
+      </EmptyMedia>
     </Empty>
 
     <template v-else>

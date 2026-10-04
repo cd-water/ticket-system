@@ -49,7 +49,7 @@ async function handleLogout() {
   <header class="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
     <div class="mx-auto flex h-15 w-[min(1180px,calc(100vw-48px))] items-center gap-9 max-lg:gap-2">
       <RouterLink to="/events" class="flex shrink-0 items-center gap-2.5 no-underline max-sm:gap-2">
-        <span class="size-3.5 rounded-[3px] bg-primary ring-4 ring-primary/25" />
+        <img src="/favicon.svg" alt="" class="size-5.5 shrink-0" />
         <span class="font-serif text-lg font-black tracking-tight text-foreground max-sm:text-base">
           Ticket-System
         </span>

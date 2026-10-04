@@ -152,7 +152,7 @@ async function buy() {
             >
               {{ picked.rowNo }} 排 {{ picked.colNo }} 座
             </div>
-            <p v-else class="text-sm text-muted-foreground">请选择一个座位</p>
+            <p v-else class="text-sm text-muted-foreground">未选座</p>
             <Button
               class="ml-auto h-11 rounded-full px-6"
               :disabled="submitting || !picked"

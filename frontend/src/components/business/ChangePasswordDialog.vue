@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -69,10 +68,9 @@ const onSubmit = handleSubmit(async (values) => {
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="rounded-[20px]">
+    <DialogContent class="rounded-[20px]" :aria-describedby="undefined">
       <DialogHeader>
         <DialogTitle class="font-serif font-black">修改密码</DialogTitle>
-        <DialogDescription>无需旧密码，修改成功后需重新登录</DialogDescription>
       </DialogHeader>
 
       <form class="space-y-4" novalidate @submit="onSubmit">
@@ -84,7 +82,7 @@ const onSubmit = handleSubmit(async (values) => {
             v-bind="passwordAttrs"
             type="password"
             autocomplete="new-password"
-            placeholder="长度 8–20 位"
+            placeholder="请输入新密码"
             class="mt-1.5"
             :aria-invalid="!!errors.newPassword"
             :aria-describedby="showError ? 'newPassword-error' : undefined"
