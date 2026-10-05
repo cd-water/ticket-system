@@ -32,7 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 
-infra/docker/.env
+deploy/docker/.env
 .codegraph
 CLAUDE.md
 AGENTS.md

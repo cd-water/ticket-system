@@ -31,7 +31,7 @@
 ├── ticket-boot/      # 启动模块：唯一可运行入口，端口 8600
 ├── frontend/         # Vue 3 前端，端口 5600，/api 代理到后端 8600
 ├── docs/             # 设计文档：ER 图、架构图、时序图、状态机图
-└── infra/
+└── deploy/
     ├── docker/       # docker-compose：MySQL / Redis / Kafka / Prometheus / Grafana
     ├── db/           # 建表 schema.sql、初始数据 seed.sql
     ├── prometheus/   # 抓取配置 prometheus.yml
@@ -45,7 +45,7 @@
 ### 基础设施（后端启动前必须先启动）
 
 ```bash
-cd infra/docker
+cd deploy/docker
 cp .env.example .env    # 已有 .env 则跳过
 docker compose up -d    # MySQL :3306、Redis :6379、Kafka :9092、Prometheus :9090、Grafana :3000
 ```

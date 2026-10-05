@@ -3,7 +3,7 @@
 前后端协作契约。设计背景见 [`docs/diagrams/`](./diagrams/README.md)。
 
 - 基址：`http://localhost:8600`，前端统一走 `/api` 前缀
-- 配套 ER 图与 schema：[`infra/db/schema.sql`](../infra/db/schema.sql)
+- 配套 ER 图与 schema：[`deploy/db/schema.sql`](../deploy/db/schema.sql)
 
 ---
 
