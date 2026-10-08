@@ -20,8 +20,8 @@ import com.cdwater.ticket.event.vo.SeatDetailVO;
 import com.cdwater.ticket.event.vo.SeatVO;
 import com.cdwater.ticket.event.vo.TicketDetailVO;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -38,6 +38,7 @@ public class EventService {
     private final EventSeatMapper eventSeatMapper;
     private final EventCacheManager cacheManager;
     private final RedissonClient redisson;
+    private final StringRedisTemplate redis;
 
     public PageResult<EventCardVO> list(EventQuery query) {
         Page<Event> page = eventMapper.selectPage(new Page<>(query.getPage(), query.getSize()),
@@ -77,14 +78,16 @@ public class EventService {
         }
         Set<Long> sold = soldSeatIds(eventId);
 
-        List<SeatVO> seats = new ArrayList<>(meta.getRowCount() * meta.getColCount());
-        for (int row = 1; row <= meta.getRowCount(); row++) {
-            for (int col = 1; col <= meta.getColCount(); col++) {
-                long seatId = (long) (row - 1) * meta.getColCount() + col;
-                // 已售与锁定中合并为「不可选」，前端不区分
-                boolean taken = sold.contains(seatId) || cacheManager.isSeatLocked(eventId, seatId);
-                seats.add(new SeatVO(row, col, seatId, taken ? 1 : 0));
-            }
+        // seatId 是全局主键，各活动区间并不从 1 开始，只能按 (row_no, col_no) 查库取真实 id
+        List<EventSeat> rows = eventSeatMapper.selectList(Wrappers.<EventSeat>lambdaQuery()
+                .eq(EventSeat::getEventId, eventId)
+                .orderByAsc(EventSeat::getRowNo)
+                .orderByAsc(EventSeat::getColNo));
+        List<SeatVO> seats = new ArrayList<>(rows.size());
+        for (EventSeat row : rows) {
+            // 已售与锁定中合并为「不可选」，前端不区分
+            boolean taken = sold.contains(row.getId()) || cacheManager.isSeatLocked(eventId, row.getId());
+            seats.add(new SeatVO(row.getRowNo(), row.getColNo(), row.getId(), taken ? 1 : 0));
         }
 
         SeatDetailVO vo = new SeatDetailVO();
@@ -98,17 +101,22 @@ public class EventService {
         return vo;
     }
 
-    /** 剩余库存读 Redis；首次访问时从 DB 播种，SETNX 保证多实例并发下只有一个赢家 */
+    /**
+     * 剩余库存读 Redis；首次访问时从 DB 播种。
+     * 必须用 StringRedisTemplate 存裸字符串：Lua 脚本以 redis.call('GET') 裸读同一个 key，
+     * 若这里走 Redisson 的对象 codec，下单侧会读到序列化 blob 而非数字。
+     */
     public int currentStock(long eventId) {
-        RBucket<Object> bucket = redisson.getBucket(RedisKey.stock(eventId));
-        Object cached = bucket.get();
+        String key = RedisKey.stock(eventId);
+        String cached = redis.opsForValue().get(key);
         if (cached != null) {
-            return Integer.parseInt(String.valueOf(cached));
+            return Integer.parseInt(cached);
         }
         EventStock stock = eventStockMapper.selectOne(Wrappers.<EventStock>lambdaQuery()
                 .eq(EventStock::getEventId, eventId));
         int value = stock == null ? 0 : stock.getStock();
-        bucket.trySet(String.valueOf(value));
+        // SETNX：多实例并发播种时只有一个赢家，值一致
+        redis.opsForValue().setIfAbsent(key, String.valueOf(value));
         return value;
     }
 

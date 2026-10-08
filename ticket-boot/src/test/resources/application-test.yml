@@ -20,6 +20,10 @@ ticket:
     secret: test-secret-value-for-integration-tests-0123456789
   sms:
     echo-code: true
+  rate:
+    order:
+      # 契约测试同一用户会连发多次下单，阈值调高避免干扰；限流本身由 OutboxRateLimitTest 单独覆盖
+      limit: 1000
   topic:
     order-timeout: test.ticket.order.timeout
     payment-sms: test.ticket.payment.sms
