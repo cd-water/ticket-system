@@ -69,9 +69,10 @@ Authorization: Bearer {accessToken}
 | 9 | GET | `/api/events/{eventId}/seat` | — |
 | 10 | POST | `/api/orders` | ✅ |
 | 11 | POST | `/api/pay` | ✅ |
-| 12 | GET | `/api/orders` | ✅ |
-| 13 | GET | `/api/events/{eventId}` | — |
-| 14 | POST | `/api/orders/cancel` | ✅ |
+| 12 | POST | `/api/pay/callback` | — |
+| 13 | GET | `/api/orders` | ✅ |
+| 14 | GET | `/api/events/{eventId}` | — |
+| 15 | POST | `/api/orders/cancel` | ✅ |
 
 ---
 
@@ -432,7 +433,25 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 3.4 订单分页查询
+### 3.4 支付结果回调（模拟微信异步通知）
+
+`POST /api/pay/callback`　鉴权：—（模拟微信回调；真实接入时应校验微信签名）
+
+**请求**
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `outTradeNo` | string | 是 | 商户订单号，对应 `t_payment.out_trade_no` |
+| `transactionId` | string | 是 | 微信支付订单号 |
+| `success` | boolean | 是 | `true`=支付成功，`false`=支付失败 |
+
+**响应**：`data` 为 `null`
+
+重复投递返回 `A200` 而非 `C409` —— 回调重投是常态，由订单状态机 CAS 保证幂等。
+
+---
+
+### 3.5 订单分页查询
 
 `GET /api/orders`　鉴权：✅
 

@@ -70,13 +70,24 @@ public class EventCacheManager {
         return redisson.getBitSet(RedisKey.seatSold(eventId)).isExists();
     }
 
-    /** 已售座位解码自 Bitmap，bit 位 = seatId - 1 */
+    /**
+     * 已售座位解码自 Bitmap，Redis bit offset = seatId - 1。
+     * Redis SETBIT 在字节内以高位在前编号，Java BitSet 以低位在前，
+     * 直接 BitSet.valueOf(raw) 会把 offset 190 读成 185，因此逐字节反转后再收集。
+     */
     public Set<Long> decodeSold(long eventId) {
-        byte[] bytes = redisson.getBitSet(RedisKey.seatSold(eventId)).toByteArray();
-        java.util.BitSet bits = java.util.BitSet.valueOf(bytes);
+        byte[] raw = redisson.getBitSet(RedisKey.seatSold(eventId)).toByteArray();
         Set<Long> ids = new HashSet<>();
-        for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i + 1)) {
-            ids.add(i + 1L);
+        for (int i = 0; i < raw.length; i++) {
+            int value = raw[i] & 0xFF;
+            if (value == 0) {
+                continue;
+            }
+            for (int bit = 0; bit < 8; bit++) {
+                if ((value & (1 << (7 - bit))) != 0) {
+                    ids.add((long) i * 8 + bit + 1);
+                }
+            }
         }
         return ids;
     }

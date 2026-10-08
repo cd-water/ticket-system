@@ -2,6 +2,7 @@ package com.cdwater.ticket.booking.booking;
 
 import com.cdwater.ticket.common.constant.EventMode;
 import com.cdwater.ticket.common.constant.RedisKey;
+import com.cdwater.ticket.common.entity.EventSeat;
 import com.cdwater.ticket.common.entity.Order;
 import com.cdwater.ticket.common.enums.ResultCode;
 import com.cdwater.ticket.common.exception.BizException;
@@ -34,8 +35,14 @@ public class SeatBookingStrategy implements BookingStrategy {
         }
         // seatId 是 t_event_seat 的全局主键，各活动区间并不从 1 开始，
         // 因此只能按 (eventId, seatId) 查库确认归属，不能用 rowCount*colCount 做区间推断
-        if (eventService.findSeat(event.getId(), seatId) == null) {
+        EventSeat seat = eventService.findSeat(event.getId(), seatId);
+        if (seat == null) {
             throw new BizException(ResultCode.BAD_REQUEST.getCode(), "座位不存在");
+        }
+        // 已售座位必须在此时就挡住：租约只挡并发抢占，挡不住「seed 里本来就已售」的座位，
+        // 否则用户能下单成功、拿到租约，直到支付才因 DB 的 status=0 条件更新失败
+        if (seat.getStatus() != 0) {
+            throw new BizException(ResultCode.CONFLICT.getCode(), "座位已被占用");
         }
         // NX EX 原子完成检测-抢占-限时；TTL 与订单有效期相等，租约不会先于订单失效
         Boolean locked = redis.opsForValue().setIfAbsent(
