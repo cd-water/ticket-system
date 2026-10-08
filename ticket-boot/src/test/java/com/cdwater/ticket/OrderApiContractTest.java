@@ -1,10 +1,13 @@
 package com.cdwater.ticket;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.cdwater.ticket.auth.service.AuthService;
 import com.cdwater.ticket.booking.dto.CreateOrderRequest;
 import com.cdwater.ticket.booking.service.OrderCloseService;
 import com.cdwater.ticket.booking.service.OrderService;
+import com.cdwater.ticket.common.entity.EventStock;
 import com.cdwater.ticket.common.entity.Order;
+import com.cdwater.ticket.event.mapper.EventStockMapper;
 import com.cdwater.ticket.support.TestSupport;
 import com.jayway.jsonpath.JsonPath;
 import org.hamcrest.Matchers;
@@ -39,6 +42,9 @@ class OrderApiContractTest {
 
     @Autowired
     private OrderCloseService orderCloseService;
+
+    @Autowired
+    private EventStockMapper eventStockMapper;
 
     @Autowired
     private TestSupport testSupport;
@@ -152,6 +158,23 @@ class OrderApiContractTest {
     }
 
     @Test
+    void 同活动的第二次取消也要成功() throws Exception {
+        String first = str(createOrder("{\"eventId\":5}"), "$.data.orderNo");
+        cancel(first);
+
+        // 取消后可再下单；这条新单同样必须能取消 ——
+        // 「一人一单」唯一键不能因为已存在一条已取消单，就把后续订单的关单顶掉
+        String second = str(createOrder("{\"eventId\":5}"), "$.data.orderNo");
+        cancel(second);
+
+        // 再取消一次是幂等的拒绝，而不是 500
+        mvc.perform(post("/api/orders/cancel").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"orderNo\":\"" + second + "\"}"))
+                .andExpect(jsonPath("$.code").value("C409"));
+    }
+
+    @Test
     void 取消不存在的订单与重复取消() throws Exception {
         mvc.perform(post("/api/orders/cancel").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -174,6 +197,25 @@ class OrderApiContractTest {
         mvc.perform(get("/api/orders").header("Authorization", "Bearer " + token)
                         .param("orderNo", orderNo))
                 .andExpect(jsonPath("$.data.records[0].status").value(2));
+    }
+
+    @Test
+    void 取消订单归还DB库存() throws Exception {
+        int before = dbStock(3);
+        String orderNo = str(createOrder("{\"eventId\":3}"), "$.data.orderNo");
+        assertThat(dbStock(3)).isEqualTo(before - 1);
+
+        cancel(orderNo);
+
+        // 关单必须把 DB 库存还回去：否则累计订单数最终会把活动卖死，
+        // 且 currentStock 从 DB 播种时会把 Redis 剩余量一并拉低
+        assertThat(dbStock(3)).isEqualTo(before);
+    }
+
+    private int dbStock(long eventId) {
+        EventStock stock = eventStockMapper.selectOne(Wrappers.<EventStock>lambdaQuery()
+                .eq(EventStock::getEventId, eventId));
+        return stock.getStock();
     }
 
     @Test

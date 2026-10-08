@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/ticket_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/ticket_system_test?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: ${MYSQL_ROOT_PASSWORD:ticketmysql}
   data:

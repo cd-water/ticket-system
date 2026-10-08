@@ -7,12 +7,15 @@ import com.cdwater.ticket.booking.mapper.PaymentMapper;
 import com.cdwater.ticket.booking.service.OrderCloseService;
 import com.cdwater.ticket.booking.service.OrderService;
 import com.cdwater.ticket.booking.service.PaymentService;
+import com.cdwater.ticket.booking.outbox.OrderTimeoutSweeper;
 import com.cdwater.ticket.common.constant.PayStatus;
 import com.cdwater.ticket.common.constant.RedisKey;
 import com.cdwater.ticket.common.entity.EventSeat;
+import com.cdwater.ticket.common.entity.EventStock;
 import com.cdwater.ticket.common.entity.Order;
 import com.cdwater.ticket.common.entity.Payment;
 import com.cdwater.ticket.event.mapper.EventSeatMapper;
+import com.cdwater.ticket.event.mapper.EventStockMapper;
 import com.cdwater.ticket.support.TestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -57,6 +61,12 @@ class PayTimeoutRaceTest {
 
     @Autowired
     private EventSeatMapper eventSeatMapper;
+
+    @Autowired
+    private EventStockMapper eventStockMapper;
+
+    @Autowired
+    private OrderTimeoutSweeper sweeper;
 
     @Autowired
     private TestSupport testSupport;
@@ -190,6 +200,41 @@ class PayTimeoutRaceTest {
 
         assertThat(orderService.findByOrderNo(orderNo).getStatus()).isZero();
         assertThat(paymentOf(orderNo).getStatus()).isEqualTo(PayStatus.FAILED);
+    }
+
+    @Test
+    void 兜底定时任务关闭已过期未支付订单() throws Exception {
+        // 顺序要紧：先记下扣减前的库存，否则「还回原值」这条断言会不证自明
+        int before = dbStock(FLASH_EVENT);
+        long orderNo = orderService.create(userId, flashRequest()).getOrderNo();
+        assertThat(dbStock(FLASH_EVENT)).isEqualTo(before - 1);
+
+        // 把过期时间推到过去，模拟「关单消息投递或消费失败、订单卡在待支付」
+        orderMapper.update(null, Wrappers.<Order>lambdaUpdate()
+                .eq(Order::getOrderNo, orderNo)
+                .set(Order::getExpireTime, LocalDateTime.now().minusMinutes(1)));
+
+        sweeper.sweep();
+
+        assertThat(orderService.findByOrderNo(orderNo).getStatus())
+                .as("到点未支付的订单不该永远卡在待支付").isEqualTo(2);
+        assertThat(paymentOf(orderNo).getStatus()).isEqualTo(PayStatus.CLOSED);
+        assertThat(dbStock(FLASH_EVENT)).as("兜底关单同样要归还库存").isEqualTo(before);
+    }
+
+    @Test
+    void 兜底定时任务不碰未过期的订单() throws Exception {
+        long orderNo = orderService.create(userId, flashRequest()).getOrderNo();
+
+        sweeper.sweep();
+
+        assertThat(orderService.findByOrderNo(orderNo).getStatus()).isZero();
+    }
+
+    private int dbStock(long eventId) {
+        EventStock stock = eventStockMapper.selectOne(Wrappers.<EventStock>lambdaQuery()
+                .eq(EventStock::getEventId, eventId));
+        return stock.getStock();
     }
 
     private static void spawn(CountDownLatch start, Runnable task) {

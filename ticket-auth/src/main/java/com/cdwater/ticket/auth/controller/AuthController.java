@@ -27,10 +27,12 @@ public class AuthController {
 
     @PostMapping("/send-code")
     public Result<SendCodeVO> sendCode(@RequestBody @Valid SendCodeRequest request) {
-        // 无短信服务商依赖：开发环境（ticket.sms.echo-code=true）把验证码回传，生产环境只发不返
+        String code = authService.sendCode(request.getPhone());
+        // 无短信服务商依赖：ticket.sms.echo-code 只控制「是否回传给前端」，
+        // 生成与入库必须无条件执行，否则生产默认配置下短信登录永远无法成功
         SendCodeVO vo = new SendCodeVO();
         if (authService.isEchoCodeEnabled()) {
-            vo.setCode(authService.sendCode(request.getPhone()));
+            vo.setCode(code);
         }
         return Result.success(vo);
     }

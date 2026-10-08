@@ -59,7 +59,12 @@ public class SeatBookingStrategy implements BookingStrategy {
     }
 
     @Override
-    public void release(EventMetaVO event, Order order) {
+    public void releasePersistent(EventMetaVO event, Order order) {
+        // 下单只拿租约、从不改 t_event_seat.status，因此 DB 侧没有要归还的东西
+    }
+
+    @Override
+    public void releaseCached(EventMetaVO event, Order order) {
         if (order.getSeatId() != null) {
             redis.delete(RedisKey.seatLock(event.getId(), order.getSeatId()));
         }

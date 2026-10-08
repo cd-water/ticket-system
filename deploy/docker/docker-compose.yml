@@ -15,6 +15,7 @@ services:
       - ../db/mysql.cnf:/etc/mysql/conf.d/zz-app.cnf:ro
       - ../db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ../db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ../db/init-test-db.sh:/docker-entrypoint-initdb.d/03-test-db.sh:ro
     networks:
       - ticket-system-network
     restart: unless-stopped

@@ -1,11 +1,14 @@
 package com.cdwater.ticket.booking.booking;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.cdwater.ticket.booking.lua.FlashStockLua;
 import com.cdwater.ticket.common.constant.EventMode;
 import com.cdwater.ticket.common.constant.RedisKey;
+import com.cdwater.ticket.common.entity.EventStock;
 import com.cdwater.ticket.common.entity.Order;
 import com.cdwater.ticket.common.enums.ResultCode;
 import com.cdwater.ticket.common.exception.BizException;
+import com.cdwater.ticket.event.mapper.EventStockMapper;
 import com.cdwater.ticket.event.service.EventService;
 import com.cdwater.ticket.event.vo.EventMetaVO;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ public class FlashBookingStrategy implements BookingStrategy {
 
     private final FlashStockLua lua;
     private final EventService eventService;
+    private final EventStockMapper eventStockMapper;
 
     @Override
     public int mode() {
@@ -47,7 +51,16 @@ public class FlashBookingStrategy implements BookingStrategy {
     }
 
     @Override
-    public void release(EventMetaVO event, Order order) {
+    public void releasePersistent(EventMetaVO event, Order order) {
+        // 下单时扣了 DB 库存，关单必须同事务加回去。
+        // 只还 Redis 会让 DB 库存随累计订单数单调递减，最终把活动卖死。
+        eventStockMapper.update(null, Wrappers.<EventStock>lambdaUpdate()
+                .eq(EventStock::getEventId, event.getId())
+                .setSql("stock = stock + 1"));
+    }
+
+    @Override
+    public void releaseCached(EventMetaVO event, Order order) {
         lua.release(RedisKey.stock(event.getId()), RedisKey.ordered(event.getId()), order.getUserId());
     }
 

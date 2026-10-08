@@ -61,12 +61,16 @@ CREATE TABLE `t_order`
     `seat_id`     BIGINT         NULL COMMENT '关联座位ID（选座模式必填，NULL-抢票模式）',
     `amount`      DECIMAL(10, 2) NOT NULL COMMENT '应付金额',
     `status`      TINYINT        NOT NULL DEFAULT 0 COMMENT '状态（0-待支付 1-已支付 2-已取消）',
+    -- 仅待支付订单取 1，其余为 NULL；MySQL 唯一键允许多个 NULL，
+    -- 于是「一人一单」只约束待支付单，已支付/已取消的历史可无限留存，
+    -- 否则同一活动的第二次取消会把主键撞成 Duplicate entry。
+    `pending_flag` TINYINT GENERATED ALWAYS AS (IF(`status` = 0, 1, NULL)) STORED COMMENT '待支付标记（仅供唯一键使用）',
     `expire_time` DATETIME       NOT NULL COMMENT '支付截止时间',
     `pay_time`    DATETIME       NULL COMMENT '支付时间',
     `create_time` DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`),
-    UNIQUE KEY `uk_user_event_status` (`user_id`, `event_id`, `status`),
+    UNIQUE KEY `uk_user_event_pending` (`user_id`, `event_id`, `pending_flag`),
     KEY `idx_user` (`user_id`),
     KEY `idx_user_create` (`user_id`, `create_time`)
 ) ENGINE = InnoDB

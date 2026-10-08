@@ -13,7 +13,7 @@ import com.cdwater.ticket.event.vo.EventMetaVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
@@ -30,9 +30,22 @@ public class OrderCloseService {
     private final PaymentMapper paymentMapper;
     private final EventService eventService;
     private final List<BookingStrategy> strategies;
+    private final TransactionTemplate transactionTemplate;
 
-    @Transactional(rollbackFor = Exception.class)
     public boolean close(Order order) {
+        EventMetaVO event = eventService.getEvent(order.getEventId());
+        BookingStrategy strategy = strategyOf(event);
+        boolean closed = Boolean.TRUE.equals(
+                transactionTemplate.execute(status -> closeInTransaction(order, strategy, event)));
+        if (closed) {
+            // Redis 不可回滚，释放必须放在提交之后：放在事务内一旦提交失败，
+            // 会留下「Redis 已归还、订单仍待支付」的窗口，抢票路径就此超卖
+            strategy.releaseCached(event, order);
+        }
+        return closed;
+    }
+
+    private boolean closeInTransaction(Order order, BookingStrategy strategy, EventMetaVO event) {
         int rows = orderMapper.update(null, Wrappers.<Order>lambdaUpdate()
                 .eq(Order::getOrderNo, order.getOrderNo())
                 .eq(Order::getStatus, OrderStatus.UNPAID)
@@ -45,8 +58,7 @@ public class OrderCloseService {
                 .eq(Payment::getOrderId, order.getId())
                 .eq(Payment::getStatus, PayStatus.UNPAID)
                 .set(Payment::getStatus, PayStatus.CLOSED));
-        EventMetaVO event = eventService.getEvent(order.getEventId());
-        strategyOf(event).release(event, order);
+        strategy.releasePersistent(event, order);
         return true;
     }
 
