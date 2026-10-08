@@ -66,6 +66,7 @@ CREATE TABLE `t_order`
     `create_time` DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`),
+    UNIQUE KEY `uk_user_event_status` (`user_id`, `event_id`, `status`),
     KEY `idx_user` (`user_id`),
     KEY `idx_user_create` (`user_id`, `create_time`)
 ) ENGINE = InnoDB

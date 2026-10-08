@@ -41,3 +41,26 @@ management:
   endpoint:
     health:
       show-details: always
+
+ticket:
+  jwt:
+    # 生产环境务必用环境变量覆盖；HS256 要求密钥 ≥ 32 字节
+    secret: ${JWT_SECRET:ticket-system-dev-secret-change-me-in-production-0123456789}
+    access-ttl: 30m
+    refresh-ttl: 7d
+  sms:
+    # 仅开发环境开启：把验证码回传给前端，生产环境必须为 false
+    echo-code: ${SMS_ECHO_CODE:false}
+    ttl: 5m
+  rate:
+    order:
+      limit: 5
+      period: 1000
+  topic:
+    order-timeout: ${TICKET_TOPIC_PREFIX:}ticket.order.timeout
+    payment-sms: ${TICKET_TOPIC_PREFIX:}ticket.payment.sms
+  order:
+    expire-minutes: 15
+  outbox:
+    # 关单中继总开关，测试中置 false 避免干扰并发断言
+    enabled: true
