@@ -87,7 +87,9 @@ public class TestSupport {
         redisson.getKeys().deleteByPattern("seat:*");
         redisson.getKeys().deleteByPattern("ticket:stock:*");
         redisson.getKeys().deleteByPattern("ticket:ordered:*");
-        redisson.getKeys().deleteByPattern("rate:order:*");
+        // RRateLimiter 的 key 带 hash tag，实际形如 {rate:order:1}:value，
+        // 前缀模式 "rate:order:*" 匹配不到带花括号的 key，必须用两侧通配
+        redisson.getKeys().deleteByPattern("*rate:order:*");
         redisson.getKeys().deleteByPattern("mq:sms:sent:*");
     }
 

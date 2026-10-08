@@ -6,6 +6,7 @@ import com.cdwater.ticket.auth.security.RestAuthEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -41,6 +42,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/send-code", "/api/auth/sms-login", "/api/auth/pwd-login",
                                 "/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers("/api/events/**").permitAll()
+                        // 模拟微信异步回调，无用户凭据；真实接入时改为校验微信签名
+                        .requestMatchers(HttpMethod.POST, "/api/pay/callback").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
